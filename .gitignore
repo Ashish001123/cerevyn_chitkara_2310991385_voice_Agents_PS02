@@ -1,0 +1,26 @@
+# Environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local configuration & credentials
+.env
+*.pem
+*.key
+
+# Local database and media outputs
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/tts_out/
+data/uploads/
+demo_output/demo.db*
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
