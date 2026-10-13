@@ -5,7 +5,7 @@
 > **Roll Number:** 2310991385  
 > **Problem ID:** PS02 (Voice Agents track)  
 > **Branch:** Computer Science Engineering, Chitkara University  
-> **Repository:** `Cerevyn-Chitkara-2310991385-PS02`
+> **Repository:** `cerevyn_chitkara_2310991385_PS02`
 
 
 A voice agent that books and cancels appointments with three fictional service providers. It
