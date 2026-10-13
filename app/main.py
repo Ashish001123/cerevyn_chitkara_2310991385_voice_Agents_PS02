@@ -241,3 +241,7 @@ def create_app(settings: Settings | None = None, stt: STTEngine | None = None,
                 pass
 
     return app
+
+
+# Default module-level ASGI application for `uvicorn app.main:app`
+app = create_app()

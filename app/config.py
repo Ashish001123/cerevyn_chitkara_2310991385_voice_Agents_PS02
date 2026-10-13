@@ -27,7 +27,7 @@ class Settings:
     local_tts_voice: str = field(default_factory=lambda: os.getenv("LOCAL_TTS_VOICE", "Samantha"))
     # Optional fixed clock (ISO-8601). Lets the seeded October 2026 slots stay
     # bookable when the project is run after those dates.
-    app_now: str | None = field(default_factory=lambda: os.getenv("APP_NOW"))
+    app_now: str | None = field(default_factory=lambda: os.getenv("APP_NOW", "2026-10-11T09:00:00+05:30"))
 
 
 def make_clock(app_now: str | None):
