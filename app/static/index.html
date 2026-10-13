@@ -8,8 +8,8 @@
   :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#667085; --accent:#2f6fed; --line:#e3e6eb; --user:#e8f0fe; --agent:#f1f3f5; --rec:#d92d20; }
   * { box-sizing: border-box; }
   body { margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
-  main { max-width:1100px; margin:0 auto; padding:24px 16px; display:grid; gap:16px; grid-template-columns: 1fr 340px; }
-  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  main { max-width:1200px; margin:0 auto; padding:24px 16px; display:grid; gap:16px; grid-template-columns: 1fr 390px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
   h1 { font-size:20px; margin:0 0 4px; } p.sub { margin:0 0 12px; color:var(--muted); }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
   #log { height:52vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-right:4px; }
@@ -23,10 +23,14 @@
   button.rec { background:var(--rec); }
   button:disabled { opacity:.5; cursor:not-allowed; }
   input[type=text] { flex:1; min-width:180px; padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; }
-  pre { margin:0; font-size:12px; white-space:pre-wrap; word-break:break-word; }
-  table { width:100%; border-collapse:collapse; font-size:13px; }
-  td, th { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); }
-  h2 { font-size:15px; margin:0 0 8px; }
+  pre { margin:0; font-size:12px; white-space:pre-wrap; word-break:break-word; max-height:120px; overflow-y:auto; background:#f9fafb; padding:8px; border-radius:6px; }
+  .table-scroll { max-height:185px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { position:sticky; top:0; background:#f8fafc; font-weight:600; }
+  td, th { text-align:left; padding:5px 7px; border-bottom:1px solid var(--line); }
+  h2 { font-size:15px; margin:0 0 8px; display:flex; justify-content:space-between; align-items:center; }
+  .badge { font-size:11px; font-weight:600; padding:2px 7px; border-radius:12px; background:#e8f0fe; color:var(--accent); }
+  .bkg-id { font-weight:600; color:#067647; font-family:ui-monospace, monospace; }
   #status { color:var(--muted); font-size:13px; margin-top:8px; min-height:1.5em; }
   .live { color:#067647; font-weight:600; }
 </style>
@@ -46,9 +50,20 @@
     <div id="status">Click Start call, then just talk. You can interrupt the agent at any time.</div>
   </section>
   <aside style="display:grid; gap:16px; align-content:start">
-    <section class="card"><h2>Dialogue state</h2><pre id="state">No session yet.</pre></section>
-    <section class="card"><h2>Available slots</h2><table id="slots"></table></section>
-    <section class="card" id="bookings-card"><h2>Confirmed Bookings</h2><div id="bookings-empty" style="color:var(--muted);font-size:13px">No bookings yet.</div><table id="bookings" style="display:none"></table></section>
+    <section class="card" id="bookings-card" style="border-left: 4px solid #067647">
+      <h2><span>Confirmed Bookings</span> <span id="bookings-count" class="badge">0</span></h2>
+      <div id="bookings-empty" style="color:var(--muted);font-size:13px">No bookings yet.</div>
+      <div class="table-scroll" id="bookings-scroll" style="display:none; max-height:160px"><table id="bookings"></table></div>
+    </section>
+    <section class="card">
+      <h2>Available slots</h2>
+      <div class="table-scroll"><table id="slots"></table></div>
+    </section>
+    <section class="card">
+      <details open><summary style="cursor:pointer;font-weight:600;font-size:14px;margin-bottom:6px">Dialogue state</summary>
+        <pre id="state">No session yet.</pre>
+      </details>
+    </section>
   </aside>
 </main>
 <script>
@@ -103,19 +118,24 @@ async function refreshBookings() {
   const bkgs = await (await fetch("/bookings")).json();
   const confirmed = bkgs.filter(b => b.booking_status === "confirmed");
   const tbl = $("bookings");
+  const scroll = $("bookings-scroll");
   const empty = $("bookings-empty");
-  if (!confirmed.length) { tbl.style.display = "none"; empty.style.display = ""; return; }
+  const count = $("bookings-count");
+  if (count) count.textContent = confirmed.length;
+  if (!confirmed.length) {
+    if (scroll) scroll.style.display = "none";
+    empty.style.display = "";
+    return;
+  }
   empty.style.display = "none";
-  tbl.style.display = "";
+  if (scroll) scroll.style.display = "";
   tbl.innerHTML = "<tr><th>ID</th><th>Service</th><th>Provider</th><th>Date</th><th>Time</th><th>Customer</th></tr>";
   for (const b of confirmed) {
     const start = new Date(b.start_at);
     const date = start.toLocaleDateString("en-IN", { day:"numeric", month:"short" });
     const time = start.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", hour12:true });
     const tr = document.createElement("tr");
-    for (const v of [b.booking_id, b.service, b.provider_name, date, time, b.customer_name]) {
-      const td = document.createElement("td"); td.textContent = v; tr.appendChild(td);
-    }
+    tr.innerHTML = `<td><span class="bkg-id">${b.booking_id}</span></td><td>${b.service}</td><td>${b.provider_name}</td><td>${date}</td><td>${time}</td><td>${b.customer_name}</td>`;
     tbl.appendChild(tr);
   }
 }
